@@ -3,45 +3,54 @@
 
 #%%
 
-import matplotlib.pyplot as plt
 import numpy as np
-
+import sympy as sym
 from scipy.integrate import odeint
 
-# * consts
+# Average potassium, sodium, leak channel conductance per unit area (mS/cm^2)
+_g_K, _g_Na, _g_L = sym.symbols('g_K g_Na g_L')
+# Average potassium, sodium, leak potentials (mV)
+_E_K, _E_Na, _E_L = sym.symbols('E_K E_Na E_L')
+# capacitance of membrane
+_C_m = sym.symbols('C_m')
+# 
 
-# Set random seed (for reproducibility)
-np.random.seed(1000)
+consts = {
+	_g_K : 224.0,
+	_g_K : 112.0,
+	_g_K : 0.5,
+	_E_K : 224.0,
+	_E_K : 112.0,
+	_E_K : 0.5,
+	_C_m : 1.0,
+}
 
-# Average potassium channel conductance per unit area (mS/cm^2)
-gK = 224.0
 
-# Average sodium channel conductance per unit area (mS/cm^2)
-gNa = 112.0
 
-# Average leak channel conductance per unit area (mS/cm^2)
-gL = 0.5
+# Rate Function Constants (RFC)
+rfc = {
+	'an_1' :  95.0,
+	'an_2' :  11.8,
+	
+	'bn_1' :  0.025,
+	'bn_2' :  22.222,
+	
+	'am_1' :  75.0,
+	'am_2' :  40.0,
+	'am_3' :  13.5,
+	
+	'bm_1' :  1.2262,
+	'bm_2' :  42.248,
+	
+	'ah_1' :  0.0035,
+	'ah_2' :  24.186,
+	
+	'bh_1' :  -0.017,
+	'bh_1' :  51.25,
+	'bh_1' :  5.2,
+}
 
-# Membrane capacitance per unit area (uF/cm^2)
-Cm = 1.0
 
-# Potassium potential (mV)
-E_K = -90.0
-
-# Sodium potential (mV)
-E_Na = 60.0
-
-# Leak potential (mV)
-E_L = -70.0
-
-# Time values
-tmin = 0
-# tmax = 150
-# tmax = 500
-tmax = 1150
-dt = 0.01
-
-# * funcs
 
 # Potassium ion-channel rate functions
 
@@ -69,6 +78,7 @@ def alpha_h(Vm):
 def beta_h(Vm):
 	return -0.017 * ( Vm + 51.25 ) / ( np.exp( - ( Vm + 51.25 ) / 5.2 ) - 1 )
   
+
 # n, m, and h steady-state values
 
 def n_inf(Vm=0.0):
