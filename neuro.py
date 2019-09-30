@@ -33,8 +33,8 @@ class neuron(object):
 		self.model = model_in
 
 		self.time_bounds = time_bounds_in
-		start_compute_time = time_bdds[]
-		start_compute_idx = int(start_compute_time / model.dt)
+		# start_compute_time = time_bdds[]
+		# start_compute_idx = int(start_compute_time / model.dt)
 
 
 	def get_spike_times( time_arr, wf, theshold = 0.0, start_idx = start_compute_idx ):

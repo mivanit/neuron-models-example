@@ -14,6 +14,7 @@ _T, _P, _z, _V, _c_in, _c_out = sym.symbols('T P z V c_in c_out')
 _xi = _F * _z * _V / (_R * _T)
 	
 model_GHK = _P * _F * _z * _xi * ( _c_out * np.e ** (-1 * _xi) - _c_in ) / ( np.e ** (-1 * _xi) - 1 )
+
 model_GHK_units = {
 	'self' 	: u.ampere,
 	_V		: u.volts,

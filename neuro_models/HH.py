@@ -3,165 +3,113 @@
 
 #%%
 
-import matplotlib.pyplot as plt
 import numpy as np
-
+import sympy as sym
 from scipy.integrate import odeint
 
-# * consts
+from neuro_models.util import *
 
-# Set random seed (for reproducibility)
-np.random.seed(1000)
+# Average potassium, sodium, leak channel conductance per unit area (mS/cm^2)
+_g_K, _g_Na, _g_L = sym.symbols('g_K g_Na g_L')
+# Average potassium, sodium, leak potentials (mV)
+_E_K, _E_Na, _E_L = sym.symbols('E_K E_Na E_L')
+# capacitance of membrane, applied current
+_C_m, _I_A = sym.symbols('C_m I_A')
+# membrane voltage, potassium gating var, sodium gating var, leak gating var
+_V_m, _n, _m, _h = sym.symbols('V_m n m h')
 
-# Average potassium channel conductance per unit area (mS/cm^2)
-gK = 36.0
 
-# Average sodium channel conductance per unit area (mS/cm^2)
-gNa = 120.0
+# rate funcs
+_alpha_n, _beta_n, _alpha_n, _beta_n, _alpha_n, _beta_n = sym.symbols('alpha_n beta_n alpha_n beta_n alpha_n beta_n')
+# steady states
+_n_inf, _m_inf, _h_inf = sym.symbols('n_inf m_inf h_inf')
 
-# Average leak channel conductance per unit area (mS/cm^2)
-gL = 0.3
 
-# Membrane capacitance per unit area (uF/cm^2)
-Cm = 1.0
+HH_consts = {
+	_g_K : 36.0,
+	_g_Na : 120.0,
+	_g_L : 0.3,
+	_E_K : -77.0,
+	_E_Na : 50.0,
+	_E_L : -54.4,
+	_C_m : 1.0,
+}
 
-# Potassium potential (mV)
-# E_K = -12.0
-E_K = -77.0
-
-# Sodium potential (mV)
-# E_Na = 115.0
-E_Na = 50.0
-
-# Leak potential (mV)
-# E_L = 10.613
-E_L = -54.4
-
-# Time values
-tmin = 0
-# tmax = 150
-# tmax = 500
-tmax = 1150
-dt = 0.01
-
-# * funcs
 
 # Potassium ion-channel rate functions
-
-def alpha_n(Vm):
-	anv = 55.0
-	return -0.01 * ( Vm + anv )/( np.exp(-( Vm + anv )/10)-1)
-	# return - (0.01 * (55.0 + Vm)) / (np.exp( - (0.1 * Vm)) - 1.0)
-
-def beta_n(Vm):
-	bnv = 65.0
-	return 0.125 * np.exp(-( Vm + bnv )/80)
-	# return 0.125 * np.exp(-Vm / 80.0)
+_alpha_n = - 0.01 * ( _V_m + 55.0 )/( np.exp(-( _V_m + 55.0 )/10)-1)
+_beta_n = 0.125 * np.exp(-( _V_m + 65.0 )/80)
 
 # Sodium ion-channel rate functions
+_alpha_m = -0.1 * ( _V_m + 40.0 ) / ( np.exp(-(_V_m + 40.0)/10)-1 )
+_beta_m = 4 * np.exp(-( _V_m + 65 )/18)
 
-def alpha_m(Vm):
-	return -0.1 * ( Vm + 40.0 ) / ( np.exp(-(Vm + 40.0)/10)-1 )
-	# return (0.1 * (25.0 - Vm)) / (np.exp(2.5 - (0.1 * Vm)) - 1.0)
+# leak channel rate values
+_alpha_h = 0.07 * np.exp( -( _V_m + 65 )/20 )
+_beta_h = 1.0 / (np.exp(-( _V_m + 35 )/10)+1)
 
-def beta_m(Vm):
-	return 4 * np.exp(-( Vm + 65 )/18)
-	# return 4.0 * np.exp(-Vm / 18.0)
 
-def alpha_h(Vm):
-	return 0.07 * np.exp( -( Vm + 65 )/20 )
-	# return 0.07 * np.exp(-Vm / 20.0)
-
-def beta_h(Vm):
-	return 1.0 / (np.exp(-( Vm + 35 )/10)+1)
-	# return 1.0 / (np.exp(3.0 - (0.1 * Vm)) + 1.0)
-  
 # n, m, and h steady-state values
-
-def n_inf(Vm=0.0):
-	return alpha_n(Vm) / (alpha_n(Vm) + beta_n(Vm))
-
-def m_inf(Vm=0.0):
-	return alpha_m(Vm) / (alpha_m(Vm) + beta_m(Vm))
-
-def h_inf(Vm=0.0):
-	return alpha_h(Vm) / (alpha_h(Vm) + beta_h(Vm))
+_n_inf = _alpha_n / ( _alpha_n + _beta_n )
+_m_inf = _alpha_m / ( _alpha_m + _beta_m )
+_h_inf = _alpha_h / ( _alpha_h + _beta_h )
   
 
+# Erisir model expressions
 
+# currents
+_I_K = _g_K * np.power(_n, 4.0) * ( _V_m - _E_K )
+_I_Na = _g_Na * np.power( _m, 3.0 ) * _h * (_V_m - _E_Na)
+_I_L = _g_L * (_V_m - _E_L)
 
+# diffeqs
 
+HH_dv_dt = ( _I_A - _I_K - _I_Na - _I_L ) / _C_m
+HH_dn_dt = ( _alpha_n * ( 1.0 - _n ) ) - ( _beta_n * _n )
+HH_dm_dt = ( _alpha_m * ( 1.0 - _m ) ) - ( _beta_m * _m)
+HH_dh_dt = ( _alpha_h * ( 1.0 - _h ) ) - ( _beta_h * _h )
 
-def compute(
-		stim,
-		# State (Vm, n, m, h)
-		IC = np.array([
-			-65.0, 
-			0.052934217620864, 
-			0.596111046346827,
-			0.317681167579781,
-		]),
-		T = np.linspace(tmin, tmax, (tmax-tmin)//dt), 
-		bln_plot = True
-	):
-
-	# Compute derivatives
-	def compute_derivatives(y, t0):
-		dy = np.zeros((4,))
-		
-		Vm = y[0]
-		n = y[1]
-		m = y[2]
-		h = y[3]
-		
-		# dVm/dt
-		GK = (gK / Cm) * np.power(n, 4.0)
-		GNa = (gNa / Cm) * np.power(m, 3.0) * h
-		GL = gL / Cm
-		
-		dy[0] = (
-			(stim(t0) / Cm) 		# stimulus current
-			- (GK * (Vm - E_K)) 	# potassium
-			- (GNa * (Vm - E_Na)) 	# sodium
-			- (GL * (Vm - E_L))		# leak
-		)
-		
-		# dn/dt
-		dy[1] = (alpha_n(Vm) * (1.0 - n)) - (beta_n(Vm) * n)
-		
-		# dm/dt
-		dy[2] = (alpha_m(Vm) * (1.0 - m)) - (beta_m(Vm) * m)
-		
-		# dh/dt
-		dy[3] = (alpha_h(Vm) * (1.0 - h)) - (beta_h(Vm) * h)
-		
-		return dy
-
-	# Solve ODE system
-	Vy = odeint(compute_derivatives, IC, T)
-
+# Rate Function Constants (RFC)
+rfc = {
+	'an_1' :  95.0,
+	'an_2' :  11.8,
 	
-	if bln_plot:
-		Idv = [stim(t) for t in T]
-		
-		# fig, ax = plt.subplots(figsize=(12, 7))
-		# ax.plot(T, Idv, 'r-')
-		# ax.set_xlabel('Time (ms)')
-		# ax.set_ylabel(r'Current density (uA/$cm^2$)')
-		# ax.set_title('Stimulus (Current density)')
-
-		# Neuron potential
-		fig, ax = plt.subplots(figsize=(12, 7))
-		ax.plot(T, Vy[:, 0], 'b-')
-		ax.set_xlabel('Time (ms)')
-		ax.set_ylabel('Vm (mV)')
-		ax.set_title('Neuron potential with two spikes')
-		plt.grid()
-
-		ax.plot(T, [x - 57.5 for x in Idv], 'r-')
-
-		# plt.show()
+	'bn_1' :  0.025,
+	'bn_2' :  22.222,
 	
-	return (T, Vy)
+	'am_1' :  75.0,
+	'am_2' :  40.0,
+	'am_3' :  13.5,
+	
+	'bm_1' :  1.2262,
+	'bm_2' :  42.248,
+	
+	'ah_1' :  0.0035,
+	'ah_2' :  24.186,
+	
+	'bh_1' :  -0.017,
+	'bh_2' :  51.25,
+	'bh_3' :  5.2,
+}
 
-#%%
+
+model_HH = NM_model(
+	name_in = 'Erisir Model',
+	model_naming_in = [
+		'voltage / dt',
+		'K gate rate / dt',
+		'Na gate rate / dt',
+		'leak gate rate / dt',
+	],
+	model_expr_in = [
+		HH_dv_dt,
+		HH_dn_dt,
+		HH_dm_dt,
+		HH_dh_dt,
+	],
+	lst_vars_in = [ _V_m, _n, _m, _h ],
+	dict_syms = HH_consts,
+	stim_in = (_I_A, None),
+	dict_units = None,
+)
+
