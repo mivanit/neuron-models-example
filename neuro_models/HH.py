@@ -4,6 +4,7 @@
 #%%
 
 import numpy as np
+# import mpmath as mp
 import sympy as sym
 from scipy.integrate import odeint
 
@@ -37,16 +38,16 @@ HH_consts = {
 
 
 # Potassium ion-channel rate functions
-_alpha_n = - 0.01 * ( _V_m + 55.0 )/( np.exp(-( _V_m + 55.0 )/10)-1)
-_beta_n = 0.125 * np.exp(-( _V_m + 65.0 )/80)
+_alpha_n = - 0.01 * ( _V_m + 55.0 )/( sym.exp(-( _V_m + 55.0 )/10)-1)
+_beta_n = 0.125 * sym.exp(-( _V_m + 65.0 )/80)
 
 # Sodium ion-channel rate functions
-_alpha_m = -0.1 * ( _V_m + 40.0 ) / ( np.exp(-(_V_m + 40.0)/10)-1 )
-_beta_m = 4 * np.exp(-( _V_m + 65 )/18)
+_alpha_m = -0.1 * ( _V_m + 40.0 ) / ( sym.exp(-(_V_m + 40.0)/10)-1 )
+_beta_m = 4 * sym.exp(-( _V_m + 65 )/18)
 
 # leak channel rate values
-_alpha_h = 0.07 * np.exp( -( _V_m + 65 )/20 )
-_beta_h = 1.0 / (np.exp(-( _V_m + 35 )/10)+1)
+_alpha_h = 0.07 * sym.exp( -( _V_m + 65 )/20 )
+_beta_h = 1.0 / (sym.exp(-( _V_m + 35 )/10)+1)
 
 
 # n, m, and h steady-state values
@@ -58,8 +59,8 @@ _h_inf = _alpha_h / ( _alpha_h + _beta_h )
 # Erisir model expressions
 
 # currents
-_I_K = _g_K * np.power(_n, 4.0) * ( _V_m - _E_K )
-_I_Na = _g_Na * np.power( _m, 3.0 ) * _h * (_V_m - _E_Na)
+_I_K = _g_K * (_n ** 4.0) * ( _V_m - _E_K )
+_I_Na = _g_Na * ( _m ** 3.0 ) * _h * (_V_m - _E_Na)
 _I_L = _g_L * (_V_m - _E_L)
 
 # diffeqs
@@ -94,7 +95,7 @@ rfc = {
 
 
 model_HH = NM_model(
-	name_in = 'Erisir Model',
+	name_in = 'Hodgkin-Huxley Model',
 	model_naming_in = [
 		'voltage / dt',
 		'K gate rate / dt',
@@ -111,5 +112,11 @@ model_HH = NM_model(
 	dict_syms = HH_consts,
 	stim_in = (_I_A, None),
 	dict_units = None,
+	steady_in = np.array([
+		-65.0, 
+		0.052934217620864, 
+		0.596111046346827,
+		0.317681167579781,
+	])
 )
 
