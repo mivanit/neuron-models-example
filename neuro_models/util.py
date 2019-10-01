@@ -264,22 +264,14 @@ class NM_model(object):
 			T = np.arange( _t_min, _t_max, _dt ), 
 		):
 
-
-		print('    B010')
-
 		if IC is None:
 			IC = self.steady
-		
-		print(IC)
-		print(T)
 
 		if self.model_exprs_subs is None:
 			self.subs_model()
 		
 		if self.model_funcs is None:
 			self.get_funcs()
-
-		print('    B020')
 
 		# compute the derivatives for each of the functions
 		def _compute_derivatives(_y, _t):
@@ -296,12 +288,8 @@ class NM_model(object):
 
 			return _dy
 
-		print('    B030')
-
 		# Solve ODE system, store
 		_Vy = odeint(_compute_derivatives, IC, T)
-
-		print('    B040')
 		
 		# solution structure: ( time_arr, sln_arr, initial_conditions )
 		self.sln = (T, _Vy, IC)
@@ -398,21 +386,12 @@ class NM_model(object):
 
 				# create pulses
 				test_pulses = [(0.0, A_default, pulseLen), (test_t, A_test, pulseLen)]
-
-				print('A010')
 				
 				# test if there is a second spike
 				self.stim = ( self.stim[0], stimFunc_pulseList(test_pulses) )
 
-				print('A020')
-				
 				self.solve(T = test_time_arr)
-
-				print('A030')
-
 				spikes = get_spikes( self.sln[0], self.sln[1][:,0] )
-				
-				print('A040')
 
 				# pair = find_range_max(compute(None, bln_plot=False, use_spikes = True, spikes=test_spike)[:,0], r_t=(max(3.5, test_t), test_t + 6), adj_dt = dt * 250.0 )
 
@@ -424,8 +403,6 @@ class NM_model(object):
 				if (Abd_U - Abd_L) < ampPrecision:
 					bln_loop = False
 				
-				print('A050')
-
 				count_loops = count_loops + 1
 			
 			minAmp.append(A_test)
