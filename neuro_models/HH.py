@@ -1,5 +1,6 @@
-# originally copied from
-# https://gist.github.com/giuseppebonaccorso/60ce3eb3a829b94abf64ab2b7a56aaef
+'''
+Hodgkin-Huxley neuron model
+'''
 
 #%%
 
@@ -94,29 +95,30 @@ rfc = {
 }
 
 
-model_HH = NM_model(
-	name_in = 'Hodgkin-Huxley Model',
-	model_naming_in = [
-		'voltage / dt',
-		'K gate rate / dt',
-		'Na gate rate / dt',
-		'leak gate rate / dt',
-	],
-	model_expr_in = [
-		HH_dv_dt,
-		HH_dn_dt,
-		HH_dm_dt,
-		HH_dh_dt,
-	],
-	lst_vars_in = [ _V_m, _n, _m, _h ],
-	dict_syms = HH_consts,
-	stim_in = (_I_A, None),
-	dict_units = None,
-	steady_in = np.array([
-		-65.0, 
-		0.052934217620864, 
-		0.596111046346827,
-		0.317681167579781,
-	])
-)
+def get_model_HH():
+	return NM_model(
+		name_in = 'Hodgkin-Huxley model',
+		model_naming_in = [
+			'voltage / dt',
+			'K gate rate / dt',
+			'Na gate rate / dt',
+			'leak gate rate / dt',
+		],
+		model_expr_in = [
+			HH_dv_dt,
+			HH_dn_dt,
+			HH_dm_dt,
+			HH_dh_dt,
+		],
+		lst_vars_in = [ _V_m, _n, _m, _h ],
+		dict_syms = HH_consts,
+		stim_in = (_I_A, None),
+		dict_units = None,
+		steady_in = np.array([
+			-65.0, 
+			0.052934217620864, 
+			0.596111046346827,
+			0.317681167579781,
+		])
+	)
 

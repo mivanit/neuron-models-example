@@ -1,7 +1,6 @@
 '''
-Erisir neuron model
+Reduced Traub-Miles neuron model
 '''
-
 #%%
 
 import numpy as np
@@ -26,29 +25,29 @@ _alpha_n, _beta_n, _alpha_n, _beta_n, _alpha_n, _beta_n = sym.symbols('alpha_n b
 _n_inf, _m_inf, _h_inf = sym.symbols('n_inf m_inf h_inf')
 
 
-HHE_consts = {
+RTM_consts = {
 	_C_m : 1.0,
-	_E_Na : 60.0,
-	_E_K : -90.0,
-	_E_L : -70,
-	_g_Na : 112.0,
-	_g_K : 224.0,
-	_g_L : 0.5,
+	_E_Na : 50.0,
+	_E_K : -100.0,
+	_E_L : -67.0,
+	_g_Na : 100.0,
+	_g_K : 80.0,
+	_g_L : 0.1,
 }
 
 
 
 # Sodium ion-channel rate functions
-_alpha_m = 40 * ( 75.5 - _V_m ) / ( np.exp( ( 75.5 - _V_m ) / 13.5 ) - 1)
-_beta_m = 1.2262 * np.exp( - _V_m  / 42.248 )
+_alpha_m = 0.32 * ( 54.0 + _V_m ) / ( 1 - np.exp( -1 * ( _V_m + 54.0 ) / 4.0 ) )
+_beta_m = 0.28 * ( 27.0 + _V_m ) / ( np.exp( ( _V_m + 27.0 ) / 5.0 ) - 1 )
 
 # leak channel rate values
-_alpha_h = 0.0035 * np.exp( - _V_m / 24.186 )
-_beta_h = -0.017 * ( _V_m + 51.25 ) / ( np.exp( - ( _V_m + 51.25 ) / 5.2 ) - 1 )
+_alpha_h = 0.128 * np.exp( - ( _V_m + 50.0 ) / 18 )
+_beta_h = 4.0 / ( 1 + np.exp( -1.0 * ( _V_m + 27.0 ) / 5.0 ))
 
 # Potassium ion-channel rate functions
-_alpha_n = ( 95.0 - _V_m )/( np.exp( ( 95.0 - _V_m ) / 11.8 ) - 1)
-_beta_n = 0.025 * np.exp( - _V_m / 22.222 )
+_alpha_n = 0.032 * ( 52.0 + _V_m ) / ( 1 - np.exp( -1 * ( _V_m + 52.0 ) / 5.0 ))
+_beta_n = 0.5 * np.exp( - ( _V_m + 57.0 ) / 40.0 )
 
 
 # n, m, and h steady-state values
@@ -57,58 +56,36 @@ _m_inf = _alpha_m / ( _alpha_m + _beta_m )
 _h_inf = _alpha_h / ( _alpha_h + _beta_h )
   
 
-# Erisir model expressions
+# Wang-Buzsaki model expressions
 
 # currents
-_I_K = _g_K * np.power(_n, 2.0) * ( _V_m - _E_K )
+_I_K = _g_K * np.power(_n, 4.0) * ( _V_m - _E_K )
 _I_Na = _g_Na * np.power( _m_inf, 3.0 ) * _h * (_V_m - _E_Na)
 _I_L = _g_L * (_V_m - _E_L)
 
 # diffeqs
 
-HHE_dv_dt = ( _I_A - _I_K - _I_Na - _I_L ) / _C_m
-HHE_dn_dt = ( _alpha_n * ( 1.0 - _n ) ) - ( _beta_n * _n )
-HHE_dh_dt = ( _alpha_h * ( 1.0 - _h ) ) - ( _beta_h * _h )
-
-# Rate Function Constants (RFC)
-rfc = {
-	'an_1' :  95.0,
-	'an_2' :  11.8,
-	
-	'bn_1' :  0.025,
-	'bn_2' :  22.222,
-	
-	'am_1' :  75.0,
-	'am_2' :  40.0,
-	'am_3' :  13.5,
-	
-	'bm_1' :  1.2262,
-	'bm_2' :  42.248,
-	
-	'ah_1' :  0.0035,
-	'ah_2' :  24.186,
-	
-	'bh_1' :  -0.017,
-	'bh_2' :  51.25,
-	'bh_3' :  5.2,
-}
+RTM_dv_dt = ( _I_A - _I_K - _I_Na - _I_L ) / _C_m
+RTM_dn_dt = ( _alpha_n * ( 1.0 - _n ) ) - ( _beta_n * _n )
+RTM_dh_dt = ( _alpha_h * ( 1.0 - _h ) ) - ( _beta_h * _h )
 
 
-def get_model_HHE():
+
+def get_model_RTM():
 	return NM_model(
-		name_in = 'Erisir Model',
+		name_in = 'Reduced Traub-Miles Model',
 		model_naming_in = [
 			'voltage / dt',
 			'K current / dt',
 			'leak current / dt',
 		],
 		model_expr_in = [
-			HHE_dv_dt,
-			HHE_dn_dt,
-			HHE_dh_dt,
+			RTM_dv_dt,
+			RTM_dn_dt,
+			RTM_dh_dt,
 		],
 		lst_vars_in = [ _V_m, _n, _h ],
-		dict_syms = HHE_consts,
+		dict_syms = RTM_consts,
 		stim_in = (_I_A, None),
 		dict_units = None,
 	)
