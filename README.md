@@ -23,9 +23,8 @@ mostly just the textbooks from the course. I'm missing a few of the exact papers
 
 
 
-
-
-
+licensed under `gpl-3.0`
+by Michael Ivanitskiy (mivanits at umich.edu)
 
 
 
