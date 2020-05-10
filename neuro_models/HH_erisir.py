@@ -7,8 +7,9 @@ Erisir neuron model
 import numpy as np
 import sympy as sym
 from scipy.integrate import odeint
+from copy import deepcopy
 
-from neuro_models.util import *
+from neuro_py.neuro_models.util import *
 
 # Average potassium, sodium, leak channel conductance per unit area (mS/cm^2)
 _g_K, _g_Na, _g_L = sym.symbols('g_K g_Na g_L')
@@ -39,16 +40,16 @@ HHE_consts = {
 
 
 # Sodium ion-channel rate functions
-_alpha_m = 40 * ( 75.5 - _V_m ) / ( np.exp( ( 75.5 - _V_m ) / 13.5 ) - 1)
-_beta_m = 1.2262 * np.exp( - _V_m  / 42.248 )
+_alpha_m = 40 * ( 75.5 - _V_m ) / ( sym.exp( ( 75.5 - _V_m ) / 13.5 ) - 1)
+_beta_m = 1.2262 * sym.exp( - _V_m  / 42.248 )
 
 # leak channel rate values
-_alpha_h = 0.0035 * np.exp( - _V_m / 24.186 )
-_beta_h = -0.017 * ( _V_m + 51.25 ) / ( np.exp( - ( _V_m + 51.25 ) / 5.2 ) - 1 )
+_alpha_h = 0.0035 * sym.exp( - _V_m / 24.186 )
+_beta_h = -0.017 * ( _V_m + 51.25 ) / ( sym.exp( - ( _V_m + 51.25 ) / 5.2 ) - 1 )
 
 # Potassium ion-channel rate functions
-_alpha_n = ( 95.0 - _V_m )/( np.exp( ( 95.0 - _V_m ) / 11.8 ) - 1)
-_beta_n = 0.025 * np.exp( - _V_m / 22.222 )
+_alpha_n = ( 95.0 - _V_m )/( sym.exp( ( 95.0 - _V_m ) / 11.8 ) - 1)
+_beta_n = 0.025 * sym.exp( - _V_m / 22.222 )
 
 
 # n, m, and h steady-state values
@@ -60,8 +61,8 @@ _h_inf = _alpha_h / ( _alpha_h + _beta_h )
 # Erisir model expressions
 
 # currents
-_I_K = _g_K * np.power(_n, 2.0) * ( _V_m - _E_K )
-_I_Na = _g_Na * np.power( _m_inf, 3.0 ) * _h * (_V_m - _E_Na)
+_I_K = _g_K * (_n ** 2.0) * ( _V_m - _E_K )
+_I_Na = _g_Na * ( _m_inf ** 3.0 ) * _h * (_V_m - _E_Na)
 _I_L = _g_L * (_V_m - _E_L)
 
 # diffeqs
@@ -94,7 +95,7 @@ rfc = {
 }
 
 
-def get_model_HHE():
+def get_model():
 	return NM_model(
 		name_in = 'Erisir Model',
 		model_naming_in = [
@@ -108,7 +109,7 @@ def get_model_HHE():
 			HHE_dh_dt,
 		],
 		lst_vars_in = [ _V_m, _n, _h ],
-		dict_syms = HHE_consts,
-		stim_in = (_I_A, None),
+		dict_syms = deepcopy(HHE_consts),
+		stim_sym_in = _I_A,
 		dict_units = None,
 	)

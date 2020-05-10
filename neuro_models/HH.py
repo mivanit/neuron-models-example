@@ -8,8 +8,9 @@ import numpy as np
 # import mpmath as mp
 import sympy as sym
 from scipy.integrate import odeint
+from copy import deepcopy
 
-from neuro_models.util import *
+from neuro_py.neuro_models.util import *
 
 # Average potassium, sodium, leak channel conductance per unit area (mS/cm^2)
 _g_K, _g_Na, _g_L = sym.symbols('g_K g_Na g_L')
@@ -55,9 +56,9 @@ _beta_h = 1.0 / (sym.exp(-( _V_m + 35 )/10)+1)
 _n_inf = _alpha_n / ( _alpha_n + _beta_n )
 _m_inf = _alpha_m / ( _alpha_m + _beta_m )
 _h_inf = _alpha_h / ( _alpha_h + _beta_h )
-  
 
-# Erisir model expressions
+
+# expressions
 
 # currents
 _I_K = _g_K * (_n ** 4.0) * ( _V_m - _E_K )
@@ -70,6 +71,47 @@ HH_dv_dt = ( _I_A - _I_K - _I_Na - _I_L ) / _C_m
 HH_dn_dt = ( _alpha_n * ( 1.0 - _n ) ) - ( _beta_n * _n )
 HH_dm_dt = ( _alpha_m * ( 1.0 - _m ) ) - ( _beta_m * _m)
 HH_dh_dt = ( _alpha_h * ( 1.0 - _h ) ) - ( _beta_h * _h )
+
+
+def get_model():
+	return NM_model(
+		name_in = 'Hodgkin-Huxley model',
+		model_naming_in = [
+			'voltage / dt',
+			'K gate rate / dt',
+			'Na gate rate / dt',
+			'leak gate rate / dt',
+		],
+		model_expr_in = [
+			HH_dv_dt,
+			HH_dn_dt,
+			HH_dm_dt,
+			HH_dh_dt,
+		],
+		lst_vars_in = [ _V_m, _n, _m, _h ],
+		dict_syms = deepcopy(HH_consts),
+		stim_sym_in = _I_A,
+		dict_units = None,
+		stable_in = np.array([
+			-65.0, 
+			0.052934217620864, 
+			0.596111046346827,
+			0.317681167579781,
+		])
+	)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Rate Function Constants (RFC)
 rfc = {
@@ -93,32 +135,3 @@ rfc = {
 	'bh_2' :  51.25,
 	'bh_3' :  5.2,
 }
-
-
-def get_model_HH():
-	return NM_model(
-		name_in = 'Hodgkin-Huxley model',
-		model_naming_in = [
-			'voltage / dt',
-			'K gate rate / dt',
-			'Na gate rate / dt',
-			'leak gate rate / dt',
-		],
-		model_expr_in = [
-			HH_dv_dt,
-			HH_dn_dt,
-			HH_dm_dt,
-			HH_dh_dt,
-		],
-		lst_vars_in = [ _V_m, _n, _m, _h ],
-		dict_syms = HH_consts,
-		stim_in = (_I_A, None),
-		dict_units = None,
-		steady_in = np.array([
-			-65.0, 
-			0.052934217620864, 
-			0.596111046346827,
-			0.317681167579781,
-		])
-	)
-

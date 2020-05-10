@@ -1,5 +1,5 @@
 '''
-Reduced Traub-Miles neuron model
+Reduced Traub-Miles neuron model with added M-current
 '''
 #%%
 
@@ -10,14 +10,14 @@ from copy import deepcopy
 
 from neuro_py.neuro_models.util import *
 
-# Average potassium, sodium, leak channel conductance per unit area (mS/cm^2)
-_g_K, _g_Na, _g_L = sym.symbols('g_K g_Na g_L')
+# Average potassium, sodium, leak, M-current channel conductance per unit area (mS/cm^2)
+_g_K, _g_Na, _g_L, _g_M = sym.symbols('g_K g_Na g_L g_M')
 # Average potassium, sodium, leak potentials (mV)
 _E_K, _E_Na, _E_L = sym.symbols('E_K E_Na E_L')
 # capacitance of membrane, applied current
 _C_m, _I_A = sym.symbols('C_m I_A')
 # membrane voltage, potassium gating var, leak gating var
-_V_m, _n, _h = sym.symbols('V_m n h')
+_V_m, _n, _h, _w = sym.symbols('V_m n h w')
 
 
 # rate funcs
@@ -34,6 +34,7 @@ RTM_consts = {
 	_g_Na : 100.0,
 	_g_K : 80.0,
 	_g_L : 0.1,
+	_g_M : 0.4,
 }
 
 
@@ -55,7 +56,9 @@ _beta_n = 0.5 * sym.exp( - ( _V_m + 57.0 ) / 40.0 )
 _n_inf = _alpha_n / ( _alpha_n + _beta_n )
 _m_inf = _alpha_m / ( _alpha_m + _beta_m )
 _h_inf = _alpha_h / ( _alpha_h + _beta_h )
-  
+
+_w_inf = 1 / ( 1 + sym.exp( -1 * ( _V_m + 35.0) / 10.0 ) )
+_tau_w = 400 / ( 3.3 * sym.exp( ( _V_m + 35.0) / 20.0 ) + sym.exp( -1 * ( _V_m + 35.0) / 20.0 ) )
 
 # Wang-Buzsaki model expressions
 
@@ -63,18 +66,20 @@ _h_inf = _alpha_h / ( _alpha_h + _beta_h )
 _I_K = _g_K * ( _n ** 4.0) * ( _V_m - _E_K )
 _I_Na = _g_Na * ( _m_inf ** 3.0 ) * _h * (_V_m - _E_Na)
 _I_L = _g_L * (_V_m - _E_L)
+_I_M = _g_M * _w * ( _V_m - _E_K )
 
 # diffeqs
 
-RTM_dv_dt = ( _I_A - _I_K - _I_Na - _I_L ) / _C_m
+RTM_dv_dt = ( _I_A - _I_K - _I_Na - _I_L - _I_M) / _C_m
 RTM_dn_dt = ( _alpha_n * ( 1.0 - _n ) ) - ( _beta_n * _n )
 RTM_dh_dt = ( _alpha_h * ( 1.0 - _h ) ) - ( _beta_h * _h )
+RTM_dw_dt = ( _w_inf - _w ) / _tau_w
 
 
 
 def get_model():
 	return NM_model(
-		name_in = 'Reduced Traub-Miles Model',
+		name_in = 'Reduced Traub-Miles Model with M-current',
 		model_naming_in = [
 			'voltage / dt',
 			'K current / dt',
@@ -84,8 +89,9 @@ def get_model():
 			RTM_dv_dt,
 			RTM_dn_dt,
 			RTM_dh_dt,
+			RTM_dw_dt,
 		],
-		lst_vars_in = [ _V_m, _n, _h ],
+		lst_vars_in = [ _V_m, _n, _h, _w ],
 		dict_syms = deepcopy(RTM_consts),
 		stim_sym_in = _I_A,
 		dict_units = None,
