@@ -12,7 +12,6 @@ mostly just the textbooks from the course. I'm missing a few of the exact papers
 - Ermentrout, G. B., & Terman, D. H. (2010). Mathematical foundations of neuroscience (Vol. 35). Springer Science & Business Media.
 - Hodgkin, A. L., & Huxley, A. F. (1952). A quantitative description of membrane current and its application to conduction and excitation in nerve. The Journal of physiology, 117(4), 500-544.
 - giuseppebonaccorso/hodgkin-huxley-main.py  https://gist.github.com/giuseppebonaccorso/60ce3eb3a829b94abf64ab2b7a56aaef 
-  (included in `standalone/HH.py`)
 - Johnston, D., & Wu, S. M. S. (1994). Foundations of cellular neurophysiology. MIT press.
 - Koch, C., & Segev, I. (Eds.). (1998). Methods in neuronal modeling: from ions to networks. MIT press.
 
