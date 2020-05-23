@@ -3,7 +3,7 @@ from scipy import constants as spConst
 import sympy as sym
 import sympy.physics.units as u
 
-from neuro_py.neuro_models.util import *
+from neuro_models.neuroUtil import *
 
 
 # ECV (equivalent curcuit)

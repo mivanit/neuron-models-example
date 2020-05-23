@@ -8,7 +8,7 @@ import sympy as sym
 from scipy.integrate import odeint
 from copy import deepcopy
 
-from neuro_py.neuro_models.util import *
+from neuro_models.neuroUtil import *
 
 # Average potassium, sodium, leak channel conductance per unit area (mS/cm^2)
 _g_K, _g_Na, _g_L = sym.symbols('g_K g_Na g_L')
