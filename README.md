@@ -1,11 +1,17 @@
 # neuron-models-example
-Implements several different biological neuron models in python, using  scipy for solvers.  
+Implements several different biological neuron models and accompanying tools in python under a common framework.
+
+Sympy is used to allow for easier construction of different models, as well as (in theory) exporting the systems of equations as LaTeX. Dicts are used to store constant values for easy modification, and scipy is used for the solvers. The idea was to create a common framework that allows to very quickly implement differential equation models in the style of the Hodgkin-Huxley model.
+
+Also provided at tools for generating waveforms for input voltages, extracting spike trains from waveforms, computing frequency-current curves, and other things. See `neuro_models/neuroUtil.py` for these tools that make use of the common `NM_model` class.
 
 Originally made as a tool for the class Computational and Mathematical Neuroscience (Math 568) at the University of Michigan, Fall 2019
 
-This code is not particularly well optimized or organized. I may clean it up at some point in the future for use in other projects.
+Written (except where specified otherwise) by Michael Ivanitskiy (mivanits at umich.edu). 
 
-Huge thanks to [Victoria Booth](http://www.math.lsa.umich.edu/~vbooth/) for running such a wonderful course
+Huge thanks to [Victoria Booth](http://www.math.lsa.umich.edu/~vbooth/) for running such a wonderful course.
+
+This code is not particularly well optimized or organized. I may clean it up at some point in the future for use in other projects.
 
 # references:
 mostly just the textbooks from the course. I'm missing a few of the exact papers for various neuron models, but those papers are cited somewhere in the books.
@@ -20,11 +26,7 @@ mostly just the textbooks from the course. I'm missing a few of the exact papers
 
 
 
-
-
 licensed under `gpl-3.0`
-by Michael Ivanitskiy (mivanits at umich.edu)
-
 
 
 
